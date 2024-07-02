@@ -1,0 +1,174 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template that sets up and configures CloudWatch logs on Windows 2022 Base
+Parameters:
+  KeyPair:
+    Description: Name of an existing EC2 KeyPair to enable RDP access to the instances
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  RDPLocation:
+    Description: The IP address range that can be used to RDP to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+Mappings:
+  AWSAMIRegionMap:
+    ap-northeast-1:
+      # * AMI指定
+      WS2022Base: ami-09e7006451ad8bf4d
+Resources:
+  WebServerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable HTTP access via port 80 and RDP access via port 3389
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '3389'
+          ToPort: '3389'
+          CidrIp: !Ref RDPLocation
+  LogRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      Path: /
+      Policies:
+        - PolicyName: LogRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:Create*'
+                  - 'logs:PutLogEvents'
+                  - 's3:GetObject'
+                Resource:
+                  - 'arn:aws:logs:*:*:*'
+                  - 'arn:aws:s3:::*'
+  LogRoleInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref LogRole
+  WebServerHost:
+    Type: 'AWS::EC2::Instance'
+    CreationPolicy:
+      ResourceSignal:
+        # * 15分指定
+        Timeout: PT15M
+    Metadata:
+      'AWS::CloudFormation::Init':
+        configSets:
+          config:
+            - 00-ConfigureCWLogs
+            - 01-Finalize
+        00-ConfigureCWLogs:
+          files:
+            'C:\Program Files\Amazon\SSM\Plugins\awsCloudWatch\AWS.EC2.Windows.CloudWatch.json':
+              content: !Sub |
+                {
+                  "EngineConfiguration": {
+                      "Components": [
+                          {
+                              "FullName": "AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch",
+                              "Id": "SecurityEventLog",
+                              "Parameters": {
+                                  "Levels": "7",
+                                  "LogName": "Security"
+                              }
+                          },
+                          {
+                              "FullName": "AWS.EC2.Windows.CloudWatch.CloudWatchLogsOutput,AWS.EC2.Windows.CloudWatch",
+                              "Id": "CloudWatchSecurityEventLog",
+                              "Parameters": {
+                                  "AccessKey": "",
+                                  "LogGroup": "${LogGroup}",
+                                  "LogStream": "{instance_id}/SecurityEventLog",
+                                  "Region": "${AWS::Region}",
+                                  "SecretKey": ""
+                              }
+                          }
+                      "Flows": {
+                          "Flows": [
+                              "SecurityEventLog,CloudWatchSecurityEventLog"
+                          ]
+                      },
+                      "PollInterval": "00:00:05"
+                  },
+                  "IsEnabled": true
+                }
+          commands:
+            0-enableSSM:
+              command: >-
+                powershell.exe -Command "Set-Service -Name AmazonSSMAgent
+                -StartupType Automatic" 
+              waitAfterCompletion: '0'
+            1-restartSSM:
+              command: powershell.exe -Command "Restart-Service AmazonSSMAgent "
+              waitAfterCompletion: '30'
+        01-Finalize:
+          commands:
+            00_signal_success:
+              command: !Sub >-
+                cfn-signal.exe -e 0 --resource WebServerHost --stack
+                ${AWS::StackName} --region ${AWS::Region}
+              waitAfterCompletion: '0'
+    Properties:
+      KeyName: !Ref KeyPair
+      ImageId: !FindInMap 
+        - AWSAMIRegionMap
+        - !Ref 'AWS::Region'
+        - WS2022Base
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref WebServerSecurityGroup
+      IamInstanceProfile: !Ref LogRoleInstanceProfile
+      UserData: !Base64 
+        'Fn::Sub': >
+          <script>
+
+          wmic product where "description='Amazon SSM Agent' " uninstall
+
+          wmic product where "description='aws-cfn-bootstrap' " uninstall 
+
+          start /wait c:\\Windows\\system32\\msiexec /passive /qn /i
+          https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-win64-latest.msi
+
+          powershell.exe -Command "iwr
+          https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/windows_amd64/AmazonSSMAgentSetup.exe 
+          -UseBasicParsing -OutFile C:\\AmazonSSMAgentSetup.exe"
+
+          start /wait C:\\AmazonSSMAgentSetup.exe /install /quiet
+
+          cfn-init.exe -v -c config -s ${AWS::StackName} --resource
+          WebServerHost --region ${AWS::Region} 
+
+          </script>
+  LogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      # * ログ保持期間
+      RetentionInDays: 30
+Outputs:
+  InstanceId:
+    Description: The instance ID of the web server
+    Value: !Ref WebServerHost
+  CloudWatchLogGroupName:
+    Description: The name of the CloudWatch log group
+    Value: !Ref LogGroup

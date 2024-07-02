@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template that sets up and configures CloudWatch logs of Login Workspace
+
+Resources:
+  EventsRule:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::Events::Rule"
+    DeletionPolicy: "Retain"
+    Properties:
+      EventBusName:
+        Ref: "EventsEventBus"
+      EventPattern:
+        detail-type:
+        - "WorkSpaces Access"
+        source:
+        - "aws.workspaces"
+      Description: "workspaces_access"
+      State: "ENABLED"
+      Targets:
+      - Arn: "arn:aws:logs:ap-northeast-1:992382710256:log-group:/aws/events/workspaces"
+        # * 実態に合わせて要差し替え
+        Id: "Id7f1e6f43-8d26-4d70-9e86-388394819ee2"
+      Id: "workspaces_access"
+      Name: "workspaces_access"
+  EventsEventBus:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::Events::EventBus"
+    DeletionPolicy: "Retain"
+    Properties:
+      Tags: []
+      Name: "default"
+  LogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      # * ログ保持期間
+      RetentionInDays: 30

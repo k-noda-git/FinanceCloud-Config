@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: "EC2 Stack"
+
+Parameters:
+  PrivateSubnetId-1a:
+    Description: private subnet id
+    Type: String
+
+  PrivateSubnetId-1c:
+    Description: private subnet id
+    Type: String
+
+  SecurityGroup:
+    Description: security group
+    Type: String
+
+# -------------------------------------
+# Resources
+# -------------------------------------
+Resources:
+  # -------------------------------------
+  # EC2 Instance (ap-northeast-1a)
+  # -------------------------------------
+  Instance-1a:
+    Type: AWS::EC2::Instance
+    Properties:
+      # -------------------------------------
+      # launch Temolate
+      # -------------------------------------
+      LaunchTemplate:
+        LaunchTemplateId: !Ref EC2LaunchTemplate
+        Version: !GetAtt EC2LaunchTemplate.LatestVersionNumber
+      # -------------------------------------
+      # Availavility Zone
+      # -------------------------------------
+      AvailabilityZone: ap-northeast-1a
+      # -------------------------------------
+      # Network Interface
+      # -------------------------------------
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          SubnetId: !Ref PrivateSubnetId-1a
+          GroupSet:
+            - !Ref SecurityGroup
+
+  # -------------------------------------
+  # EC2 Instance (ap-northeast-1c)
+  # -------------------------------------
+  Instance-1c:
+    Type: AWS::EC2::Instance
+    Properties:
+      # -------------------------------------
+      # Launch Template
+      # -------------------------------------
+      LaunchTemplate:
+        LaunchTemplateId: !Ref EC2LaunchTemplate
+        Version: !GetAtt EC2LaunchTemplate.LatestVersionNumber
+      # -------------------------------------
+      # Availavility Zone
+      # -------------------------------------
+      AvailabilityZone: ap-northeast-1c
+      # -------------------------------------
+      # Network Interface
+      # -------------------------------------
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          SubnetId: !Ref PrivateSubnetId-1c
+          GroupSet:
+            - !Ref SecurityGroup

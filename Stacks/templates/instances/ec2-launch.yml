@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "EC2 Launch Template Stack"
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that is prefixed to resource names
+    Type: String
+
+  TagName:
+    Description: An tag name that is prefixed to resource names
+    Type: String
+# -------------------------------------
+# Resource
+# -------------------------------------
+Resources:
+  # -------------------------------------
+  # Launch Template
+  # -------------------------------------
+  EC2LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Ref EnvironmentName
+      LaunchTemplateData:
+        # -------------------------------------
+        # Resource Tag
+        # -------------------------------------
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Ref TagName
+          - ResourceType: volume
+            Tags:
+              - Key: Name
+                Value: !Ref TagName
+          - ResourceType: network-interface
+            Tags:
+              - Key: Name
+                Value: !Ref TagName
+        # -------------------------------------
+        # Storage (Volume)
+        # -------------------------------------
+        BlockDeviceMappings:
+          - DeviceName: /dev/sdb
+            Ebs:
+              VolumeType: gp3
+              VolumeSize: 8
+              DeleteOnTermination: true
+              Encrypted: false
+              Iops: 100
+        # -------------------------------------
+        # EBS Optimized
+        # -------------------------------------
+        EbsOptimized: false
+        # -------------------------------------
+        # AMI
+        # -------------------------------------
+        ImageId: ami-016415eef3351ae7d
+        # -------------------------------------
+        # Instance Type
+        # -------------------------------------
+        InstanceType: t2.medium
+        # -------------------------------------
+        # Key Name
+        # -------------------------------------
+        KeyName: { KEYPAIR }
+        # -------------------------------------
+        # Credit Specification
+        # -------------------------------------
+        CreditSpecification:
+          CpuCredits: "standard"
+        # -------------------------------------
+        # Monitoring
+        # -------------------------------------
+        Monitoring:
+          Enabled: False
+        # -------------------------------------
+        #  Disable Api Termination
+        # -------------------------------------
+        DisableApiTermination: true

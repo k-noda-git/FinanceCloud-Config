@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: "ALB Stack"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Project Configuration"
+        Parameters:
+          - ProjectName
+          - Environment
+      - Label:
+          default: "ELB Configuration"
+        Parameters:
+          - VPCID
+          - ALBPublicSubnet1
+          - ALBPublicSubnet2
+          - ALBSecurityGroupID
+          - HealthCheckPath
+          - DeletionProtectionEnabled
+          - IdleTimeoutSeconds
+
+Parameters:
+  ProjectName:
+    Description: "Enter the project name. (ex: my-project)"
+    Type: String
+    MinLength: 1
+    ConstraintDescription: "ProjectName must be enter."
+    Default: my-project
+  Environment:
+    Description: "Select the environment."
+    Type: String
+    AllowedValues:
+      - dev
+      - stg
+      - prd
+    ConstraintDescription: "Environment must be select."
+  VPCID:
+    Description: "Select the VPC ID."
+    Type: AWS::EC2::VPC::Id
+  ALBPublicSubnet1:
+    Description: "Enter the Subnet ID for ALB in the selected VPC."
+    Type: AWS::EC2::Subnet::Id
+  ALBPublicSubnet2:
+    Description: "Enter the Subnet ID for ALB in the selected VPC."
+    Type: AWS::EC2::Subnet::Id
+  ALBSecurityGroupID:
+    Description: "Select the Security Group ID for ALB."
+    Type: AWS::EC2::SecurityGroup::Id
+  HealthCheckPath:
+    Description: "Enter the path respond to health checks from ALB."
+    Type: String
+    Default: /api/health
+  DeletionProtectionEnabled:
+    Description: "Select whether to enable deletion protection."
+    Type: String
+    Default: true
+    AllowedValues:
+      - false
+      - true
+  # アイドルタイムアウト値
+  IdleTimeoutSeconds:
+    Description: "Enter the ALB idle timeout seconds. (default: 60)"
+    Type: String
+    Default: 60
+
+# -------------------------------------
+# Resources
+# -------------------------------------
+Resources:
+  # -------------------------------------
+  # Target Groups
+  # -------------------------------------
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: InternetALB
+    Properties:
+      Name: !Sub ${ProjectName}-${Environment}-tg
+      TargetType: ip
+      Protocol: HTTP
+      Port: 80
+      VpcId: !Ref VPCID
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: !Ref HealthCheckPath
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckIntervalSeconds: 30
+
+  # -------------------------------------
+  # Elastic Load Balancer
+  # -------------------------------------
+  InternetALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Name: !Sub ${ProjectName}-${Environment}-alb
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: "deletion_protection.enabled"
+          Value: !Ref DeletionProtectionEnabled
+        - Key: "idle_timeout.timeout_seconds"
+          Value: !Ref IdleTimeoutSeconds
+      Subnets:
+        - !Ref ALBPublicSubnet1
+        - !Ref ALBPublicSubnet2
+      SecurityGroups:
+        - !Ref ALBSecurityGroupID
+      Tags:
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  # -------------------------------------
+  # Listener
+  # -------------------------------------
+  ALBListenerHTTP:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+      LoadBalancerArn: !Ref InternetALB
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  InternetALBArn:
+    Value: !Ref InternetALB
+  InternetALBName:
+    Value: !GetAtt InternetALB.LoadBalancerName
+  ALBTargetGroupArn:
+    Value: !Ref ALBTargetGroup
+  ALBTargetGroupName:
+    Value: !GetAtt ALBTargetGroup.TargetGroupName

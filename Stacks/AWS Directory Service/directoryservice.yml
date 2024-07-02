@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: "Microsoft Active Directory Stack"
+
+Parameters:
+  DirectoryDomainName:
+    Description: Directory domain.
+    Type: String
+  AdminPassword:
+    Description: Admin password.
+    Type: String
+  ComputerName:
+    Description: Computer name.
+    Type: String
+  PrivateSubnetID1:
+    Description: Private subnet ID 1.
+    Type: String
+  PrivateSubnetID2:
+    Description: Private subnet ID 2.
+    Type: String
+  VpcID:
+    Description: VPC ID.
+    Type: String
+
+Resources:
+  MicrosoftAD:
+    Type: AWS::DirectoryService::MicrosoftAD
+    Properties:
+      CreateAlias: true
+      Edition: "Standard"
+      EnableSso: true
+      Name: !Ref DirectoryDomainName
+      Password: !Ref AdminPassword
+      ShortName: !Ref ComputerName
+      VpcSettings:
+        SubnetIds:
+          - !Ref PrivateSubnetID1
+          - !Ref PrivateSubnetID2
+        VpcId: !Ref VpcID

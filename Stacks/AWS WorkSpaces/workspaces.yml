@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "WorkSpaces Stack"
+
+Resources:
+  WindowsWorkspace:
+    Type: AWS::WorkSpaces::Workspace
+    Properties:
+      BundleId: String
+      DirectoryId: String
+      RootVolumeEncryptionEnabled: Boolean
+      Tags:
+        - Key: String
+          Value: String
+      UserName: String
+      UserVolumeEncryptionEnabled: Boolean
+      VolumeEncryptionKey: String
+      WorkspaceProperties:
+        ComputeTypeName: String
+        RootVolumeSizeGib: Integer
+        RunningMode: String
+        RunningModeAutoStopTimeoutInMinutes: Integer
+        UserVolumeSizeGib: Integer

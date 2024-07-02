@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Security Group Stack"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: SecurityGroup
+        Parameters:
+          - SgName1
+          - VpcId
+          - SgIngFromPort1
+          - SgIngCidrIp1
+          - SgIngFromPort2
+          - SgIngCidrIp2
+
+Parameters:
+  SgName1:
+    Type: String
+    Default: "SgName1"
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+  # VPC IPv4 CIDR
+  SgIngCidrIp1:
+    Type: String
+    Default: "0.0.0.0/0"
+
+  SgIngFromPort1:
+    Type: String
+    Default: "80"
+
+  # Connect SSH to our componey GIP
+  SgIngCidrIp2:
+    Type: String
+    Default: "0.0.0.0/0"
+
+  SgIngFromPort2:
+    Type: String
+    Default: "22"
+# -------------------------------------
+# Resources
+# -------------------------------------
+Resources:
+  # -------------------------------------
+  # EC2 SecurityGroup
+  # -------------------------------------
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Ref SgName1
+      GroupDescription: Allow http to client host
+      VpcId: !Ref VpcId
+      # -------------------------------------
+      # out bound（full open）
+      # -------------------------------------
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+      # -------------------------------------
+      # in bound
+      # -------------------------------------
+      SecurityGroupIngress:
+        - CidrIp: !Ref SgIngCidrIp1
+          FromPort: !Ref SgIngFromPort1
+          IpProtocol: tcp
+          ToPort: !Ref SgIngFromPort1
+        - CidrIp: !Ref SgIngCidrIp2
+          FromPort: !Ref SgIngFromPort2
+          IpProtocol: tcp
+          ToPort: !Ref SgIngFromPort2
