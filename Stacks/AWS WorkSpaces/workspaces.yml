@@ -20,3 +20,10 @@ Resources:
         RunningMode: String
         RunningModeAutoStopTimeoutInMinutes: Integer
         UserVolumeSizeGib: Integer
+
+Outputs:
+  WindowsWorkspaceId:
+    Description: A reference to the created WorkSpace
+    Value: !Ref WindowsWorkspace
+    Export:
+      Name: !Sub "${AWS::StackName}-WindowsWorkspaceId"
