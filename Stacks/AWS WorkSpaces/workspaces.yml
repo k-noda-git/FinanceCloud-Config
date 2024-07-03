@@ -10,49 +10,30 @@ Parameters:
     Type: String
     Description: "The identifier of the AWS Directory Service directory for the WorkSpace."
 
-  RootVolumeEncryptionEnabled:
-    Type: Boolean
-    Description: "Indicates whether the data stored on the root volume is encrypted."
-
-  Tags:
-    Type: List
-    Description: "The tags for the WorkSpace."
-    Default: []
-    ItemType:
-      Key: String
-      Value: String
-
   UserName:
     Type: String
     Description: "The user name of the user for the WorkSpace."
-
-  UserVolumeEncryptionEnabled:
-    Type: Boolean
-    Description: "Indicates whether the data stored on the user volume is encrypted."
-
-  VolumeEncryptionKey:
-    Type: String
-    Description: "The KMS key used to encrypt data stored on your WorkSpace."
+    Default: "username"
 
   ComputeTypeName:
     Type: String
     Description: "The compute type of the WorkSpace."
+    Default: "STANDARD"
 
   RootVolumeSizeGib:
     Type: Integer
     Description: "The size of the root volume."
+    Default: 80
 
   RunningMode:
     Type: String
     Description: "The running mode of the WorkSpace."
-
-  RunningModeAutoStopTimeoutInMinutes:
-    Type: Integer
-    Description: "The time after a WorkSpace is stopped before it is automatically started again."
+    Default: "MANUAL"
 
   UserVolumeSizeGib:
     Type: Integer
     Description: "The size of the user storage."
+    Default: 10
 
 Resources:
   WindowsWorkspace:
@@ -60,16 +41,11 @@ Resources:
     Properties:
       BundleId: !Ref BundleId
       DirectoryId: !Ref DirectoryId
-      RootVolumeEncryptionEnabled: !Ref RootVolumeEncryptionEnabled
-      Tags: !Ref Tags
       UserName: !Ref UserName
-      UserVolumeEncryptionEnabled: !Ref UserVolumeEncryptionEnabled
-      VolumeEncryptionKey: !Ref VolumeEncryptionKey
       WorkspaceProperties:
         ComputeTypeName: !Ref ComputeTypeName
         RootVolumeSizeGib: !Ref RootVolumeSizeGib
         RunningMode: !Ref RunningMode
-        RunningModeAutoStopTimeoutInMinutes: !Ref RunningModeAutoStopTimeoutInMinutes
         UserVolumeSizeGib: !Ref UserVolumeSizeGib
 
 Outputs:
