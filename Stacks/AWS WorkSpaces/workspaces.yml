@@ -21,7 +21,7 @@ Parameters:
     Default: "STANDARD"
 
   RootVolumeSizeGib:
-    Type: Integer
+    Type: Number
     Description: "The size of the root volume."
     Default: 80
 
@@ -31,7 +31,7 @@ Parameters:
     Default: "MANUAL"
 
   UserVolumeSizeGib:
-    Type: Integer
+    Type: Number
     Description: "The size of the user storage."
     Default: 10
 
