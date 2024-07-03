@@ -29,7 +29,7 @@ Resources:
       CreateAlias: true
       Edition: "Standard"
       EnableSso: true
-      Name: finance.cloud
+      Name: !Ref DirectoryDomainName
       Password: !Ref AdminPassword
       ShortName: !Ref ComputerName
       VpcSettings:
