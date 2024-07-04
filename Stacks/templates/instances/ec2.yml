@@ -3,11 +3,11 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: "EC2 Stack"
 
 Parameters:
-  PrivateSubnetId-1a:
+  PrivateSubnetId_1a:
     Description: private subnet id
     Type: String
 
-  PrivateSubnetId-1c:
+  PrivateSubnetId_1c:
     Description: private subnet id
     Type: String
 
@@ -15,10 +15,20 @@ Parameters:
     Description: security group
     Type: String
 
+  KeyPairName:
+    Description: key pair name
+    Type: String
+
 # -------------------------------------
 # Resources
 # -------------------------------------
 Resources:
+  KeyPairName:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyFormat: "pem"
+      KeyName: !Ref KeyPairName
+      KeyType: "ed25519"
   # -------------------------------------
   # EC2 Instance (ap-northeast-1a)
   # -------------------------------------
@@ -36,13 +46,17 @@ Resources:
       # -------------------------------------
       AvailabilityZone: ap-northeast-1a
       # -------------------------------------
+      # Key Name
+      # -------------------------------------
+      KeyName: !Ref KeyPairName
+      # -------------------------------------
       # Network Interface
       # -------------------------------------
       NetworkInterfaces:
         - AssociatePublicIpAddress: "true"
           DeleteOnTermination: true
           DeviceIndex: "0"
-          SubnetId: !Ref PrivateSubnetId-1a
+          SubnetId: !Ref PrivateSubnetId_1a
           GroupSet:
             - !Ref SecurityGroup
 
@@ -63,13 +77,17 @@ Resources:
       # -------------------------------------
       AvailabilityZone: ap-northeast-1c
       # -------------------------------------
+      # Key Name
+      # -------------------------------------
+      KeyName: !Ref KeyPairName
+      # -------------------------------------
       # Network Interface
       # -------------------------------------
       NetworkInterfaces:
         - AssociatePublicIpAddress: "true"
           DeleteOnTermination: true
           DeviceIndex: "0"
-          SubnetId: !Ref PrivateSubnetId-1c
+          SubnetId: !Ref PrivateSubnetId_1c
           GroupSet:
             - !Ref SecurityGroup
 
