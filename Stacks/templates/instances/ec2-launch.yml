@@ -78,3 +78,11 @@ Resources:
         #  Disable Api Termination
         # -------------------------------------
         DisableApiTermination: true
+
+Outputs:
+  LaunchTemplateId:
+    Description: "ID of the EC2 Launch Template"
+    Value: !Ref EC2LaunchTemplate
+  LaunchTemplateName:
+    Description: "Name of the EC2 Launch Template"
+    Value: !GetAtt EC2LaunchTemplate.LaunchTemplateName

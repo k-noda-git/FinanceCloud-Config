@@ -26,13 +26,13 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       # -------------------------------------
-      # launch Temolate
+      # Launch Template
       # -------------------------------------
       LaunchTemplate:
         LaunchTemplateId: !Ref EC2LaunchTemplate
         Version: !GetAtt EC2LaunchTemplate.LatestVersionNumber
       # -------------------------------------
-      # Availavility Zone
+      # Availability Zone
       # -------------------------------------
       AvailabilityZone: ap-northeast-1a
       # -------------------------------------
@@ -59,7 +59,7 @@ Resources:
         LaunchTemplateId: !Ref EC2LaunchTemplate
         Version: !GetAtt EC2LaunchTemplate.LatestVersionNumber
       # -------------------------------------
-      # Availavility Zone
+      # Availability Zone
       # -------------------------------------
       AvailabilityZone: ap-northeast-1c
       # -------------------------------------
@@ -72,3 +72,12 @@ Resources:
           SubnetId: !Ref PrivateSubnetId-1c
           GroupSet:
             - !Ref SecurityGroup
+
+Outputs:
+  InstanceId-1a:
+    Description: "EC2 Instance ID for ap-northeast-1a"
+    Value: !Ref Instance-1a
+
+  InstanceId-1c:
+    Description: "EC2 Instance ID for ap-northeast-1c"
+    Value: !Ref Instance-1c
