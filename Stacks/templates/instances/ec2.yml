@@ -72,7 +72,7 @@ Resources:
   # -------------------------------------
   # EC2 Instance (ap-northeast-1a)
   # -------------------------------------
-  Instance-1a:
+  Instance1a:
     Type: AWS::EC2::Instance
     Properties:
       LaunchTemplate:
@@ -91,7 +91,7 @@ Resources:
   # -------------------------------------
   # EC2 Instance (ap-northeast-1c)
   # -------------------------------------
-  Instance-1c:
+  Instance1c:
     Type: AWS::EC2::Instance
     Properties:
       LaunchTemplate:
@@ -108,13 +108,13 @@ Resources:
             - !Ref SecurityGroup
 
 Outputs:
-  InstanceId-1a:
+  InstanceId1a:
     Description: "EC2 Instance ID for ap-northeast-1a"
-    Value: !Ref Instance-1a
+    Value: !Ref Instance1a
 
-  InstanceId-1c:
+  InstanceId1c:
     Description: "EC2 Instance ID for ap-northeast-1c"
-    Value: !Ref Instance-1c
+    Value: !Ref Instance1c
 
   LaunchTemplateId:
     Description: "ID of the EC2 Launch Template"
