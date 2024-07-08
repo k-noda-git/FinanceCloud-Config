@@ -51,7 +51,7 @@ Resources:
   Ec2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub sg-ec2-${EnvironmentName}-${Environment}
+      GroupName: !Sub ec2-${EnvironmentName}-${Environment}
       GroupDescription: EC2 of the Security Group
       VpcId: !Ref VpcId
       # -------------------------------------
