@@ -10,12 +10,8 @@ Metadata:
           - EnvironmentName
           - Environment
           - VpcId
-          - VpcIpv4Cidr
-          - SgIngCidrIp80
-          - SgIngFromPort2
           - SgIngCidrIp3389
           - ClientIpv4Cidr
-          - SgIngCidrIp443
 
 Parameters:
   EnvironmentName:
@@ -34,10 +30,6 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: "ID of the VPC"
-
-  VpcIpv4Cidr:
-    Type: AWS::EC2::VPCCidrBlock
-    Description: "CIDR IP range for ingress traffic to internal communication"
 
   ClientIpv4Cidr:
     Type: String
