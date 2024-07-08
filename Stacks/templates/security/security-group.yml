@@ -54,16 +54,6 @@ Parameters:
 # -------------------------------------
 Resources:
   # -------------------------------------
-  # Elastic IP
-  # -------------------------------------
-  ElasticIp:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: !Sub eip-${EnvironmentName}-${Environment}
-  # -------------------------------------
   # EC2 SecurityGroup
   # -------------------------------------
   Ec2SecurityGroup:
