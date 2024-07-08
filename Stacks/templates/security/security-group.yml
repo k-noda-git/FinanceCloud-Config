@@ -7,66 +7,79 @@ Metadata:
       - Label:
           default: SecurityGroup
         Parameters:
-          - SgName1
+          - EnvironmentName
+          - Environment
           - VpcId
-          - SgIngFromPort1
-          - SgIngCidrIp1
+          - VpcIpv4Cidr
+          - SgIngCidrIp80
           - SgIngFromPort2
-          - SgIngCidrIp2
+          - SgIngCidrIp3389
+          - ClientIpv4Cidr
+          - SgIngCidrIp443
 
 Parameters:
-  SgName1:
+  EnvironmentName:
     Type: String
-    Default: "SgName1"
+    Default: "EnvironmentName"
+    Description: "Name of the Security Group"
+
+  Environment:
+    Description: "Select the environment."
+    Type: String
+    AllowedValues:
+      - dev
+      - stg
+      - prd
 
   VpcId:
     Type: AWS::EC2::VPC::Id
+    Description: "ID of the VPC"
 
-  # VPC IPv4 CIDR
-  SgIngCidrIp1:
+  VpcIpv4Cidr:
+    Type: AWS::EC2::VPCCidrBlock
+    Description: "CIDR IP range for ingress traffic to internal communication"
+
+  ClientIpv4Cidr:
     Type: String
     Default: "0.0.0.0/0"
+    Description: "ClIENT CIDR IP range for ingress traffic"
 
-  SgIngFromPort1:
+  SgIngFromPort3389:
     Type: String
-    Default: "80"
+    Default: "3389"
+    Description: "Port number for Remort Desktop traffic"
 
-  # Connect SSH to our componey GIP
-  SgIngCidrIp2:
-    Type: String
-    Default: "0.0.0.0/0"
-
-  SgIngFromPort2:
-    Type: String
-    Default: "22"
 # -------------------------------------
 # Resources
 # -------------------------------------
 Resources:
   # -------------------------------------
+  # Elastic IP
+  # -------------------------------------
+  ElasticIp:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub eip-${EnvironmentName}-${Environment}
+  # -------------------------------------
   # EC2 SecurityGroup
   # -------------------------------------
-  InstanceSecurityGroup:
+  Ec2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Ref SgName1
-      GroupDescription: Allow http to client host
+      GroupName: !Sub sg-ec2-${EnvironmentName}-${Environment}
+      GroupDescription: EC2 of the Security Group
       VpcId: !Ref VpcId
       # -------------------------------------
-      # out bound（full open）
+      # EC2 inbound rule
       # -------------------------------------
+      SecurityGroupIngress:
+        - CidrIp: !Ref ClientIpv4Cidr
+          FromPort: !Ref SgIngFromPort3389
+          IpProtocol: tcp
+          ToPort: !Ref SgIngFromPort3389
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
           IpProtocol: -1
-      # -------------------------------------
-      # in bound
-      # -------------------------------------
-      SecurityGroupIngress:
-        - CidrIp: !Ref SgIngCidrIp1
-          FromPort: !Ref SgIngFromPort1
-          IpProtocol: tcp
-          ToPort: !Ref SgIngFromPort1
-        - CidrIp: !Ref SgIngCidrIp2
-          FromPort: !Ref SgIngFromPort2
-          IpProtocol: tcp
-          ToPort: !Ref SgIngFromPort2
